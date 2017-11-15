@@ -2,6 +2,7 @@ import fiona
 import csv
 import datetime
 import time
+import subprocess
 
 def main():
 	'''
@@ -17,18 +18,41 @@ def main():
 	for zone in range(1,19):
 			final = filename_zone + str(zone) + "_2009_01.gdb"
 	
+	'''
 
-	for zone in range(1,20):
-		for count in range(1,12):
+	year = '2014'
+	for zone in range(11,21):
+		for count in range(1,5):
 			ais_data = [['id','latitude','longitude','SOG','COG','Heading','ROT','Year','Month','Day','Hour','Min','Sec','Status','VoyageID','MMSI','ReceiverType','ReceiverID']]
 			fname = "Zone" + str(zone) + "_" + str(year) + "_" + str(count).zfill(2) + ".zip"
-			fn_url += "https://coast.noaa.gov/htdata/CMSP/AISDataHandler/AIS_FGDBs/Zone" + str(zone) + "/" + fname
+			fn_url = "https://coast.noaa.gov/htdata/CMSP/AISDataHandler/"+year+"/"+str(count).zfill(2)+"/" + fname
+			#print("wget "+fn_url)
+			#print("unzip "+ fname)
+			#print("rm "+fname)
+			#print("rm "+fname[:-3]+"gdb")
+			
 			subprocess.call("wget "+fn_url, shell=True)
 			subprocess.call("unzip "+fname, shell=True)
-			
 			subprocess.call("rm "+fname, shell=True)
-			subprocess.call("rm "+fname[:-3]+"gdb", shell=True)
+			gdb_data = fiona.open(fname[:-3]+"gdb")
+			ais_data = [['id','latitude','longitude','SOG','COG','Heading','ROT','Timestamp','Status','VoyageID','MMSI','ReceiverType','ReceiverID']]
+			for row in gdb_data:
+				val = row['properties']['BaseDateTime'].split('-')
+				val.extend(val[2][3:].split(':'))
+				val[2] = val[2][:2]
+				y,m,d,h,mn,s = [int(x) for x in val]
+				dt = datetime.datetime(year=y, month=m, day=d, hour=h, minute=mn, second=s)
+				dt = int(time.mktime(dt.timetuple()))
+				ais_data.append([str(x) for x in [row['id'], row['geometry']['coordinates'][1], row['geometry']['coordinates'][0], row['properties']['SOG'], row['properties']['COG'], row['properties']['Heading'], row['properties']['ROT'],dt, row['properties']['Status'], row['properties']['VoyageID'], row['properties']['MMSI'], row['properties']['ReceiverType'], row['properties']['ReceiverID']]])
+			subprocess.call("rm -rf "+fname[:-3]+"gdb", shell=True)
+			with open(fname[:-3]+"csv", "w") as f:
+				writer = csv.writer(f)
+				writer.writerows(ais_data)
+			
+			
+			
 	'''
+	
 	gdb_data = fiona.open("../data/Zone1_2014_01.gdb")
 	print(gdb_data.schema)
 	print(len(gdb_data))
@@ -49,6 +73,7 @@ def main():
 	with open("../data/Zone1_2014_01.csv", "w") as f:
 		writer = csv.writer(f)
 		writer.writerows(ais_data)
+	'''
 
 #https://coast.noaa.gov/htdata/CMSP/AISDataHandler/AIS_FGDBs/Zone1/Zone1_2009_01.zip
 
