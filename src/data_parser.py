@@ -20,12 +20,16 @@ def main():
 	
 	'''
 
-	year = '2014'
-	for zone in range(11,21):
-		for count in range(1,5):
+	year = '2012'
+	months = ["January","February","March","April","May","June","July","August","September","October","November","December"]
+	for zone in range(11,12):
+		for count in range(1,13):
 			ais_data = [['id','latitude','longitude','SOG','COG','Heading','ROT','Year','Month','Day','Hour','Min','Sec','Status','VoyageID','MMSI','ReceiverType','ReceiverID']]
-			fname = "Zone" + str(zone) + "_" + str(year) + "_" + str(count).zfill(2) + ".zip"
-			fn_url = "https://coast.noaa.gov/htdata/CMSP/AISDataHandler/"+year+"/"+str(count).zfill(2)+"/" + fname
+			fname = "Zone" + str(zone) + "_" + str(year) + "_" + str(count).zfill(2) + ".gdb.zip"
+			#fn_url = "https://coast.noaa.gov/htdata/CMSP/AISDataHandler/"+year+"/"+str(count).zfill(2)+"_"+str(months[count-1])+"_"+year+"/" + fname
+			fn_url = "https://coast.noaa.gov/htdata/CMSP/AISDataHandler/"+year+"/"+str(count).zfill(2)+"/" + fname 
+
+			#"https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2010/02_February_2010/Zone17_2010_02.zip"
 			#print("wget "+fn_url)
 			#print("unzip "+ fname)
 			#print("rm "+fname)
@@ -34,7 +38,7 @@ def main():
 			subprocess.call("wget "+fn_url, shell=True)
 			subprocess.call("unzip "+fname, shell=True)
 			subprocess.call("rm "+fname, shell=True)
-			gdb_data = fiona.open(fname[:-3]+"gdb")
+			gdb_data = fiona.open(fname[:-4])
 			ais_data = [['id','latitude','longitude','SOG','COG','Heading','ROT','Timestamp','Status','VoyageID','MMSI','ReceiverType','ReceiverID']]
 			for row in gdb_data:
 				val = row['properties']['BaseDateTime'].split('-')
@@ -49,10 +53,7 @@ def main():
 				writer = csv.writer(f)
 				writer.writerows(ais_data)
 			
-			
-			
 	'''
-	
 	gdb_data = fiona.open("../data/Zone1_2014_01.gdb")
 	print(gdb_data.schema)
 	print(len(gdb_data))
