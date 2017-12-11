@@ -27,7 +27,7 @@ def main():
 	tide_json = json.loads(f.read())
 	print("loaded")
 	
-	fname = "../data/2012/Zone11_2012_01.gdb.csv"
+	fname = "../data/2012/Zone11_2012_07.gdb.csv"
 	
 	data = pd.read_csv(fname)
 	print("read dataframe")
@@ -44,7 +44,7 @@ def main():
 		#print(tide_json[latitude][longitude][str(date.month)][str(date.day)])
 		#print(tide_json[latitude][longitude][str(date.month)][str(date.day)][str(date.hour)])
 		data.set_value(i,"tide",tide_json[latitude][longitude][str(date.month)][str(date.day)][str(date.hour)])   
-	data.to_csv('Zone11_2012_01_tide.csv')
+	data.to_csv('Zone11_2012_07_tide.csv')
 
 	'''
 	for fname in files:
